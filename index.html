@@ -21,7 +21,7 @@
       *, *::before, *::after { animation: none !important; transition: none !important; }
     }
 
-    /* ── Design tokens ──────────────────────────────────────── */
+    /* ── Design tokens ──────────────────────────────────── */
     :root {
       --bg:           #FAF8F3;
       --surface:      #FFFFFF;
@@ -32,9 +32,9 @@
       --text:         #3A3833;
       --text2:        #8A8676;
       --text3:        #B8B5A8;
-      --accent:       #74B562;
-      --accent-ring:  rgba(116,181,98,0.2);
-      --hot:          #C4784E;
+      --sage:         #B8C5A6;
+      --accent:       #C97B5A;
+      --accent-ring:  rgba(201,123,90,0.15);
       --danger:       #C17B6A;
       --r:            14px;
       --st:           env(safe-area-inset-top, 0px);
@@ -46,18 +46,18 @@
     body {
       background: var(--bg);
       color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', system-ui, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
       font-size: 16px;
       line-height: 1.5;
       -webkit-font-smoothing: antialiased;
     }
 
-    /* ── App shell ──────────────────────────────────────────── */
+    /* ── App shell ──────────────────────────────────────── */
     #app {
       display: flex;
       flex-direction: column;
       height: 100dvh;
-      max-width: 480px;
+      max-width: 420px;
       margin: 0 auto;
     }
 
@@ -79,32 +79,45 @@
 
     /* ── Today header ───────────────────────────────────── */
     .today-header {
-      padding: calc(var(--st) + 28px) 22px 16px;
+      padding: calc(var(--st) + 24px) 22px 20px;
+    }
+    .header-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .progress-ring { flex-shrink: 0; }
+    #ring-arc {
+      transition: stroke-dashoffset 0.25s ease-in-out;
+    }
+    #ring-label {
+      font-size: 16px;
+      font-weight: 500;
+      fill: #3A3833;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+    .header-text {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
     }
     .today-date-label {
       font-size: 11px;
-      font-weight: 600;
-      letter-spacing: 0.12em;
+      font-weight: 400;
+      letter-spacing: 0.09em;
       text-transform: uppercase;
-      color: var(--accent);
-      margin-bottom: 4px;
+      color: var(--text3);
     }
     .today-greeting {
-      font-size: 28px;
-      font-weight: 600;
-      letter-spacing: -0.5px;
+      font-size: 19px;
+      font-weight: 500;
       color: var(--text);
-      line-height: 1.2;
+      line-height: 1.25;
     }
-    .today-sub {
-      font-size: 14px;
-      color: var(--text2);
-      margin-top: 5px;
-    }
-    .today-sub b { font-weight: 400; }
 
-    /* ── Progress (hidden, preserved for JS) ──────────── */
+    /* ── Hidden legacy progress elements (JS compat) ───── */
     .progress-wrap { display: none; }
+    .today-sub     { display: none; }
 
     /* ── All-done banner ────────────────────────────────── */
     .all-done-banner {
@@ -119,10 +132,7 @@
       overflow: hidden;
       transition: opacity 0.35s, max-height 0.35s, margin 0.35s;
     }
-    .all-done-banner.show {
-      opacity: 1;
-      max-height: 60px;
-    }
+    .all-done-banner.show { opacity: 1; max-height: 60px; }
 
     /* ── Habit list ─────────────────────────────────────── */
     .habit-list {
@@ -132,65 +142,64 @@
       gap: 10px;
     }
 
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(5px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
     .habit-item {
       display: flex;
       align-items: center;
-      gap: 14px;
-      padding: 16px;
+      gap: 12px;
+      padding: 16px 14px;
       background: var(--surface);
       border-radius: var(--r);
       border: 1px solid var(--border);
       cursor: pointer;
-      transition: opacity 0.2s ease, box-shadow 0.2s ease;
+      transition: background 0.25s ease-in-out, border-color 0.25s ease-in-out,
+                  box-shadow 0.25s ease-in-out, opacity 0.15s;
       user-select: none;
       -webkit-user-select: none;
       min-height: 44px;
       position: relative;
-      box-shadow: 0 1px 4px rgba(58,56,51,0.07);
     }
     .habit-item:active { opacity: 0.65; }
-
     .habit-item.done {
       background: var(--surface-done);
       border-color: transparent;
-      box-shadow: none;
     }
 
     /* Checkbox circle */
     .check-ring {
-      width: 26px; height: 26px;
-      min-width: 26px;
+      width: 22px; height: 22px;
+      min-width: 22px;
       border-radius: 50%;
       border: 1.5px solid var(--border-empty);
       background: transparent;
       display: flex; align-items: center; justify-content: center;
-      transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+      transition: background 0.25s ease-in-out, border-color 0.25s ease-in-out;
     }
     .habit-item.done .check-ring {
-      background: var(--accent);
-      border-color: var(--accent);
-      transform: scale(1.08);
-    }
-    .check-ring svg polyline {
-      stroke: var(--bg);
+      background: var(--sage);
+      border-color: var(--sage);
     }
     .check-ring svg {
       opacity: 0;
       transform: scale(0.5);
-      transition: opacity 0.2s ease, transform 0.2s ease;
+      transition: opacity 0.25s ease-in-out, transform 0.25s ease-in-out;
     }
-    .habit-item.done .check-ring svg {
-      opacity: 1;
-      transform: scale(1);
-    }
+    .habit-item.done .check-ring svg { opacity: 1; transform: scale(1); }
+
+    /* Habit icon */
+    .habit-icon { flex-shrink: 0; }
 
     /* Text */
     .habit-body { flex: 1; min-width: 0; }
     .habit-name {
-      font-size: 16px;
-      font-weight: 500;
+      font-size: 14px;
+      font-weight: 400;
       color: var(--text);
-      transition: color 0.2s ease;
+      transition: color 0.25s ease-in-out;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -198,13 +207,14 @@
     .habit-item.done .habit-name {
       text-decoration: line-through;
       text-decoration-color: var(--text3);
-      color: var(--text2);
+      color: #A8A496;
     }
     .habit-meta {
-      font-size: 13px;
+      font-size: 11px;
       color: var(--text3);
-      margin-top: 3px;
+      margin-top: 2px;
     }
+    .streak-accent { color: var(--accent); }
 
     /* Empty state */
     .empty-state {
@@ -225,7 +235,7 @@
     }
     .section-title {
       font-size: 22px;
-      font-weight: 600;
+      font-weight: 500;
       letter-spacing: -0.3px;
       color: var(--text);
     }
@@ -274,7 +284,7 @@
       cursor: pointer;
       transition: background 0.15s, color 0.15s;
     }
-    .icon-btn.edit:active { background: rgba(116,181,98,0.15); color: var(--accent); }
+    .icon-btn.edit:active { background: rgba(201,123,90,0.12); color: var(--accent); }
     .icon-btn.del { background: rgba(193,123,106,0.07); color: var(--danger); }
 
     /* Add link */
@@ -286,8 +296,8 @@
       background: none;
       border: none;
       font-family: inherit;
-      font-size: 15px;
-      color: var(--text3);
+      font-size: 13px;
+      color: var(--accent);
       cursor: pointer;
       padding: 8px 20px;
       min-height: 44px;
@@ -316,7 +326,7 @@
       min-height: 36px;
     }
     .range-pill.active {
-      background: rgba(116,181,98,0.1);
+      background: rgba(201,123,90,0.08);
       border-color: var(--accent);
       color: var(--accent);
     }
@@ -332,21 +342,11 @@
       justify-content: space-between;
       margin-bottom: 10px;
     }
-    .history-habit-name {
-      font-size: 14px;
-      font-weight: 500;
-      color: var(--text);
-    }
-    .history-streak-label {
-      font-size: 12px;
-      color: var(--accent);
-    }
-    .history-streak-label.hot { color: var(--hot); }
+    .history-habit-name { font-size: 14px; font-weight: 500; color: var(--text); }
+    .history-streak-label { font-size: 12px; color: var(--accent); }
+    .history-streak-label.hot { color: var(--accent); }
 
-    .dot-row {
-      display: flex;
-      gap: 3px;
-    }
+    .dot-row { display: flex; gap: 3px; }
     .dot-col {
       display: flex;
       flex-direction: column;
@@ -364,16 +364,10 @@
       min-width: 8px;
       max-width: 28px;
     }
-    .dot.done { background: var(--accent); }
-    .dot.today {
-      box-shadow: 0 0 0 2px var(--bg), 0 0 0 3.5px var(--accent);
-    }
+    .dot.done { background: var(--sage); }
+    .dot.today { box-shadow: 0 0 0 2px var(--bg), 0 0 0 3.5px var(--sage); }
     .dot.future { opacity: 0.3; }
-    .dot-label {
-      font-size: 9px;
-      color: var(--text3);
-      font-weight: 500;
-    }
+    .dot-label { font-size: 9px; color: var(--text3); font-weight: 500; }
 
     /* ── Bottom nav ─────────────────────────────────────── */
     .bottom-nav {
@@ -419,7 +413,7 @@
 
     .sheet {
       width: 100%;
-      max-width: 480px;
+      max-width: 420px;
       margin: 0 auto;
       background: var(--bg);
       border-radius: 22px 22px 0 0;
@@ -439,7 +433,7 @@
     }
     .sheet-title {
       font-size: 18px;
-      font-weight: 600;
+      font-weight: 500;
       color: var(--text);
       margin-bottom: 22px;
     }
@@ -449,7 +443,7 @@
     .field-label {
       display: block;
       font-size: 11px;
-      font-weight: 600;
+      font-weight: 500;
       letter-spacing: 0.08em;
       text-transform: uppercase;
       color: var(--text3);
@@ -483,21 +477,14 @@
       border: none;
       font-family: inherit;
       font-size: 15px;
-      font-weight: 600;
+      font-weight: 500;
       cursor: pointer;
       transition: opacity 0.15s;
       min-height: 44px;
     }
     .btn:active { opacity: 0.65; }
-    .btn-ghost {
-      background: var(--surface2);
-      color: var(--text2);
-    }
-    .btn-primary {
-      background: var(--accent);
-      color: var(--bg);
-      flex: 2;
-    }
+    .btn-ghost   { background: var(--surface2); color: var(--text2); }
+    .btn-primary { background: var(--accent); color: var(--bg); flex: 2; }
 
     /* ── Toast ──────────────────────────────────────────── */
     .toast {
@@ -519,10 +506,7 @@
       white-space: nowrap;
       max-width: calc(100vw - 40px);
     }
-    .toast.show {
-      opacity: 1;
-      transform: translateX(-50%) translateY(0);
-    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
   </style>
 </head>
 <body>
@@ -531,20 +515,38 @@
   <!-- ═══ TODAY VIEW ════════════════════════════════════ -->
   <div class="view active" id="view-today">
     <div class="today-header">
-      <div class="today-date-label" id="today-date"></div>
-      <div class="today-greeting" id="today-greeting"></div>
-      <div class="today-sub" id="progress-count"></div>
+      <div class="header-row">
+        <svg class="progress-ring" width="64" height="64" viewBox="0 0 64 64" aria-hidden="true">
+          <circle cx="32" cy="32" r="27" fill="none" stroke="#EDE9DE" stroke-width="5"/>
+          <circle id="ring-arc" cx="32" cy="32" r="27" fill="none" stroke="#B8C5A6"
+            stroke-width="5" stroke-linecap="round"
+            stroke-dasharray="169.6" stroke-dashoffset="169.6"
+            transform="rotate(-90 32 32)"/>
+          <text id="ring-label" x="32" y="32" text-anchor="middle" dominant-baseline="central">0/0</text>
+        </svg>
+        <div class="header-text">
+          <div class="today-date-label" id="today-date"></div>
+          <div class="today-greeting" id="today-greeting"></div>
+        </div>
+      </div>
     </div>
-    <div class="progress-wrap">
+
+    <!-- hidden elements kept for JS compatibility -->
+    <div class="progress-wrap" aria-hidden="true">
       <div class="progress-pct" id="progress-pct"></div>
       <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+      <div id="progress-count"></div>
     </div>
+
     <div class="all-done-banner" id="all-done-banner">All done for today</div>
     <div class="scroll">
       <div class="habit-list" id="habit-list"></div>
       <div class="empty-state" id="empty-today" style="display:none">
-        <div class="empty-icon">✅</div>
-        No habits yet.<br>Head to <strong>Manage</strong> to add some.
+        <div class="empty-icon">✦</div>
+        No habits yet.<br>Tap <strong>+ add habit</strong> below to get started.
+      </div>
+      <div class="add-link-wrap">
+        <button class="add-link" id="open-add-today">+ add habit</button>
       </div>
     </div>
   </div>
@@ -641,7 +643,7 @@
 <script>
 /* ═══════════════════════════════════════════════════════════
    DATA MODEL
-   state.habits     = [{ id, name, duration, createdAt }]
+   state.habits      = [{ id, name, duration, createdAt }]
    state.completions = { "YYYY-MM-DD": [id, id, ...] }
 ═══════════════════════════════════════════════════════════ */
 const STORAGE_KEY = 'habitTracker_v1';
@@ -650,6 +652,7 @@ let editingId = null;
 let historyDays = 7;
 let toastTimer = null;
 let midnightTimer = null;
+let firstRender = true;
 
 /* ── Persistence ──────────────────────────────────────── */
 function load() {
@@ -670,16 +673,56 @@ function ds(date) {
   return `${y}-${m}-${d}`;
 }
 function today() { return ds(new Date()); }
-function displayDate(date) {
-  return date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
-}
-function greeting() {
-  const h = new Date().getHours();
-  if (h < 12) return 'Good morning';
-  if (h < 18) return 'Good afternoon';
-  return 'Good evening';
-}
 const DAY_INIT = ['S','M','T','W','T','F','S'];
+
+/* ── Greeting ─────────────────────────────────────────── */
+function getGreeting() {
+  const h = new Date().getHours();
+  let base;
+  if (h >= 5 && h < 12)      base = 'Good morning';
+  else if (h >= 12 && h < 17) base = 'Good afternoon';
+  else if (h >= 17 && h < 22) base = 'Good evening';
+  else                         base = 'Working late?';
+  return (state && state.userName) ? `${base}, ${state.userName}` : base;
+}
+
+/* ── Habit icon ───────────────────────────────────────── */
+function habitIcon(name, isDone) {
+  const n = name.toLowerCase();
+  const stroke = isDone ? '#A8A496' : '#3A3833';
+  const base = `width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${stroke}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"`;
+  let inner;
+
+  if (/language|spanish|french|duolingo|vocab/.test(n)) {
+    inner = `<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>`;
+  } else if (/meditat|stretch|yoga|breath/.test(n)) {
+    inner = `<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 0 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>`;
+  } else if (/read|book|pages/.test(n)) {
+    inner = `<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>`;
+  } else if (/learn|study|course|options|finance|stock/.test(n)) {
+    inner = `<polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>`;
+  } else if (/exercise|run|gym|workout/.test(n)) {
+    inner = `<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>`;
+  } else if (/write|journal|notes/.test(n)) {
+    inner = `<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>`;
+  } else {
+    inner = `<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.5" fill="${stroke}" stroke="none"/>`;
+  }
+
+  return `<svg class="habit-icon" ${base}>${inner}</svg>`;
+}
+
+/* ── Progress ring ────────────────────────────────────── */
+function updateRing(c, n) {
+  const arc   = document.getElementById('ring-arc');
+  const label = document.getElementById('ring-label');
+  if (!arc || !label) return;
+  const circ   = 2 * Math.PI * 27;
+  const offset = n > 0 ? circ * (1 - c / n) : circ;
+  arc.style.strokeDasharray  = circ;
+  arc.style.strokeDashoffset = offset;
+  label.textContent = `${c}/${n > 0 ? n : 0}`;
+}
 
 /* ── Streaks ──────────────────────────────────────────── */
 function streak(habitId) {
@@ -687,12 +730,8 @@ function streak(habitId) {
   const todayDone = (state.completions[t] || []).includes(habitId);
   let count = 0;
   const d = new Date();
-  if (todayDone) {
-    count = 1;
-    d.setDate(d.getDate() - 1);
-  } else {
-    d.setDate(d.getDate() - 1);
-  }
+  if (todayDone) { count = 1; d.setDate(d.getDate() - 1); }
+  else { d.setDate(d.getDate() - 1); }
   while ((state.completions[ds(d)] || []).includes(habitId)) {
     count++;
     d.setDate(d.getDate() - 1);
@@ -730,41 +769,46 @@ function toast(msg) {
 
 /* ═══ RENDER: TODAY ═══════════════════════════════════════ */
 function renderToday() {
-  const t = today();
-  const done = doneToday();
+  const t     = today();
+  const done  = doneToday();
   const habits = state.habits;
   const n = habits.length;
   const c = done.length;
 
+  /* Date label: "SATURDAY, MAY 2" */
   const now = new Date();
-  document.getElementById('today-date').textContent =
-    now.toLocaleDateString('en-US', { weekday: 'long' }).toUpperCase();
-  document.getElementById('today-greeting').textContent =
-    now.toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
+  const weekday = now.toLocaleDateString('en-US', { weekday: 'long' }).toUpperCase();
+  const month   = now.toLocaleDateString('en-US', { month: 'long' }).toUpperCase();
+  document.getElementById('today-date').textContent = `${weekday}, ${month} ${now.getDate()}`;
+  document.getElementById('today-greeting').textContent = getGreeting();
 
+  /* Progress ring */
+  updateRing(c, n);
+
+  /* Legacy progress elements (hidden, kept for compat) */
   const pct = n ? Math.round(c / n * 100) : 0;
-  document.getElementById('progress-count').innerHTML =
-    `<b>${c}</b> of <b>${n}</b> done today`;
+  document.getElementById('progress-count').innerHTML = `<b>${c}</b> of <b>${n}</b> done today`;
   const pctEl = document.getElementById('progress-pct');
   pctEl.textContent = pct + '%';
   pctEl.classList.toggle('show', c > 0 && n > 0);
   document.getElementById('progress-fill').style.width = pct + '%';
 
-  const banner = document.getElementById('all-done-banner');
-  banner.classList.toggle('show', n > 0 && c === n);
+  /* All-done banner */
+  document.getElementById('all-done-banner').classList.toggle('show', n > 0 && c === n);
 
-  const list = document.getElementById('habit-list');
+  const list  = document.getElementById('habit-list');
   const empty = document.getElementById('empty-today');
 
   if (!n) {
     list.innerHTML = '';
     empty.style.display = '';
+    firstRender = false;
     return;
   }
   empty.style.display = 'none';
   list.innerHTML = '';
 
-  habits.forEach(habit => {
+  habits.forEach((habit, index) => {
     const isDone = done.includes(habit.id);
     const s = streak(habit.id);
 
@@ -775,20 +819,26 @@ function renderToday() {
     item.setAttribute('aria-checked', isDone ? 'true' : 'false');
     item.setAttribute('tabindex', '0');
 
+    if (firstRender) {
+      item.style.animation = `fadeIn 0.3s ease-in-out ${index * 40}ms both`;
+    }
+
+    /* Meta sub-line with streak in clay */
     const metaParts = [];
-    if (habit.duration) metaParts.push(`${habit.duration} min`);
-    if (s > 0) metaParts.push(`${s} day streak`);
+    if (habit.duration) metaParts.push(`<span>${habit.duration} min</span>`);
+    if (s > 0) metaParts.push(`<span class="streak-accent">${s} day streak</span>`);
     const metaHtml = metaParts.length
       ? `<div class="habit-meta">${metaParts.join(' · ')}</div>`
       : '';
 
     item.innerHTML = `
       <div class="check-ring">
-        <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+        <svg width="11" height="11" viewBox="0 0 13 13" fill="none">
           <polyline points="2,6.5 5,9.5 11,3" stroke="#FAF8F3" stroke-width="2.2"
             stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </div>
+      ${habitIcon(habit.name, isDone)}
       <div class="habit-body">
         <div class="habit-name">${esc(habit.name)}</div>
         ${metaHtml}
@@ -801,6 +851,8 @@ function renderToday() {
 
     list.appendChild(item);
   });
+
+  firstRender = false;
 }
 
 function handleCheck(habitId, item) {
@@ -816,14 +868,11 @@ function handleCheck(habitId, item) {
 
 /* ═══ RENDER: MANAGE ══════════════════════════════════════ */
 function renderManage() {
-  const list = document.getElementById('manage-list');
+  const list  = document.getElementById('manage-list');
   const empty = document.getElementById('empty-manage');
   list.innerHTML = '';
 
-  if (!state.habits.length) {
-    empty.style.display = '';
-    return;
-  }
+  if (!state.habits.length) { empty.style.display = ''; return; }
   empty.style.display = 'none';
 
   state.habits.forEach(habit => {
@@ -860,18 +909,14 @@ function renderManage() {
 /* ═══ RENDER: HISTORY ═════════════════════════════════════ */
 function renderHistory() {
   const content = document.getElementById('history-content');
-  const empty = document.getElementById('empty-history');
+  const empty   = document.getElementById('empty-history');
 
-  if (!state.habits.length) {
-    content.innerHTML = '';
-    empty.style.display = '';
-    return;
-  }
+  if (!state.habits.length) { content.innerHTML = ''; empty.style.display = ''; return; }
   empty.style.display = 'none';
   content.innerHTML = '';
 
   const todayDate = new Date();
-  const todayS = today();
+  const todayS    = today();
   const days = [];
   for (let i = historyDays - 1; i >= 0; i--) {
     const d = new Date(todayDate);
@@ -881,13 +926,11 @@ function renderHistory() {
 
   state.habits.forEach(habit => {
     const s = streak(habit.id);
-
     const block = document.createElement('div');
     block.className = 'history-block';
 
-    const isHot = s >= 7;
     const streakHtml = s > 0
-      ? `<span class="history-streak-label${isHot ? ' hot' : ''}">${s} day streak</span>`
+      ? `<span class="history-streak-label${s >= 7 ? ' hot' : ''}">${s} day streak</span>`
       : '';
 
     block.innerHTML = `
@@ -901,10 +944,9 @@ function renderHistory() {
 
     const row = block.querySelector(`#dots-${habit.id}`);
     days.forEach(d => {
-      const s2 = ds(d);
+      const s2     = ds(d);
       const isDone = (state.completions[s2] || []).includes(habit.id);
       const isToday = s2 === todayS;
-
       const col = document.createElement('div');
       col.className = 'dot-col';
       col.innerHTML = `
@@ -919,10 +961,10 @@ function renderHistory() {
 function openSheet(id = null) {
   editingId = id;
   const habit = id ? state.habits.find(h => h.id === id) : null;
-  document.getElementById('sheet-title').textContent = id ? 'Edit Habit' : 'Add Habit';
-  document.getElementById('sheet-save').textContent = id ? 'Save Changes' : 'Add Habit';
-  document.getElementById('inp-name').value = habit ? habit.name : '';
-  document.getElementById('inp-dur').value = habit?.duration || '';
+  document.getElementById('sheet-title').textContent  = id ? 'Edit Habit' : 'Add Habit';
+  document.getElementById('sheet-save').textContent   = id ? 'Save Changes' : 'Add Habit';
+  document.getElementById('inp-name').value  = habit ? habit.name : '';
+  document.getElementById('inp-dur').value   = habit?.duration || '';
   document.getElementById('sheet-overlay').classList.add('open');
   setTimeout(() => document.getElementById('inp-name').focus(), 380);
 }
@@ -963,19 +1005,19 @@ function switchView(name) {
   document.getElementById('view-' + name).classList.add('active');
   document.querySelector(`.nav-btn[data-view="${name}"]`).classList.add('active');
   if (name === 'history') renderHistory();
-  if (name === 'manage') renderManage();
+  if (name === 'manage')  renderManage();
 }
 
 function renderAll() {
   renderToday();
-  if (document.getElementById('view-manage').classList.contains('active')) renderManage();
+  if (document.getElementById('view-manage').classList.contains('active'))  renderManage();
   if (document.getElementById('view-history').classList.contains('active')) renderHistory();
 }
 
 /* ═══ MIDNIGHT RESET ══════════════════════════════════════ */
 function scheduleMidnight() {
   clearTimeout(midnightTimer);
-  const now = new Date();
+  const now  = new Date();
   const next = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 2);
   midnightTimer = setTimeout(() => { renderAll(); scheduleMidnight(); }, next - now);
 }
@@ -1009,8 +1051,9 @@ function init() {
     if (btn.dataset.action === 'delete') deleteHabit(btn.dataset.id);
   });
 
-  /* Add habit */
-  document.getElementById('open-add-btn').addEventListener('click', () => openSheet());
+  /* Add habit buttons */
+  document.getElementById('open-add-btn').addEventListener('click',   () => openSheet());
+  document.getElementById('open-add-today').addEventListener('click', () => openSheet());
 
   /* Sheet */
   document.getElementById('sheet-cancel').addEventListener('click', closeSheet);
@@ -1037,10 +1080,8 @@ function init() {
     });
   });
 
-  /* Midnight reset */
   scheduleMidnight();
 
-  /* Visibility change: re-render if day changed while app was backgrounded */
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') renderAll();
   });
