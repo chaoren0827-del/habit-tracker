@@ -1,0 +1,1117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Habits">
+  <meta name="theme-color" content="#0f0f0f">
+  <title>Daily Habits</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <style>
+    /* ── Reset ─────────────────────────────────────────── */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0; padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+    }
+
+    /* ── Design tokens ──────────────────────────────────── */
+    :root {
+      --bg:          #0f0f0f;
+      --surface:     #1a1a1a;
+      --surface2:    #242424;
+      --border:      #2e2e2e;
+      --text:        #f0f0f0;
+      --text2:       #888;
+      --text3:       #4a4a4a;
+      --accent:      #4ade80;
+      --accent-bg:   rgba(74,222,128,0.08);
+      --accent-ring: rgba(74,222,128,0.35);
+      --danger:      #f87171;
+      --r:           16px;
+      --st:          env(safe-area-inset-top, 0px);
+      --sb:          env(safe-area-inset-bottom, 0px);
+    }
+
+    /* ── Base ───────────────────────────────────────────── */
+    html, body { height: 100%; overflow: hidden; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', system-ui, sans-serif;
+      font-size: 16px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── App shell ──────────────────────────────────────── */
+    #app {
+      display: flex;
+      flex-direction: column;
+      height: 100dvh;
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    /* ── Views ──────────────────────────────────────────── */
+    .view {
+      display: none;
+      flex-direction: column;
+      flex: 1;
+      overflow: hidden;
+    }
+    .view.active { display: flex; }
+
+    .scroll {
+      flex: 1;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: 12px;
+    }
+
+    /* ── Today header ───────────────────────────────────── */
+    .today-header {
+      padding: calc(var(--st) + 22px) 22px 0;
+    }
+    .today-date-label {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 4px;
+    }
+    .today-greeting {
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: -0.4px;
+    }
+
+    /* ── Progress ───────────────────────────────────────── */
+    .progress-wrap {
+      padding: 18px 22px 20px;
+    }
+    .progress-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .progress-count {
+      font-size: 14px;
+      color: var(--text2);
+    }
+    .progress-count b { color: var(--text); font-weight: 600; }
+    .progress-pct {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--accent);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .progress-pct.show { opacity: 1; }
+    .progress-bar {
+      height: 5px;
+      background: var(--surface2);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 3px;
+      transition: width 0.45s cubic-bezier(0.34, 1.4, 0.64, 1);
+    }
+
+    /* ── All-done banner ────────────────────────────────── */
+    .all-done-banner {
+      margin: 0 22px 16px;
+      padding: 14px 18px;
+      background: var(--accent-bg);
+      border: 1px solid var(--accent-ring);
+      border-radius: var(--r);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--accent);
+      opacity: 0;
+      max-height: 0;
+      overflow: hidden;
+      transition: opacity 0.35s, max-height 0.35s, margin 0.35s;
+    }
+    .all-done-banner.show {
+      opacity: 1;
+      max-height: 80px;
+    }
+
+    /* ── Habit list ─────────────────────────────────────── */
+    .habit-list {
+      padding: 0 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .habit-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 16px 16px;
+      background: var(--surface);
+      border-radius: var(--r);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s, transform 0.12s;
+      user-select: none;
+      -webkit-user-select: none;
+      position: relative;
+      overflow: hidden;
+    }
+    .habit-item::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: var(--accent);
+      opacity: 0;
+      transition: opacity 0.15s;
+      pointer-events: none;
+    }
+    .habit-item:active::after { opacity: 0.06; }
+    .habit-item:active { transform: scale(0.985); }
+
+    .habit-item.done {
+      border-color: var(--accent-ring);
+      background: var(--accent-bg);
+    }
+
+    /* Checkbox circle */
+    .check-ring {
+      width: 28px; height: 28px;
+      min-width: 28px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.2s cubic-bezier(0.34,1.56,0.64,1),
+                  border-color 0.2s,
+                  transform 0.2s cubic-bezier(0.34,1.56,0.64,1);
+      position: relative;
+    }
+    .habit-item.done .check-ring {
+      background: var(--accent);
+      border-color: var(--accent);
+      transform: scale(1.08);
+    }
+    .check-ring svg {
+      opacity: 0;
+      transform: scale(0.4) rotate(-15deg);
+      transition: opacity 0.18s, transform 0.2s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    .habit-item.done .check-ring svg {
+      opacity: 1;
+      transform: scale(1) rotate(0deg);
+    }
+
+    /* Ripple on check */
+    @keyframes ripple {
+      0%   { transform: scale(0); opacity: 0.4; }
+      100% { transform: scale(2.8); opacity: 0; }
+    }
+    .check-ring::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background: var(--accent);
+      transform: scale(0);
+      opacity: 0;
+    }
+    .habit-item.just-checked .check-ring::before {
+      animation: ripple 0.45s ease-out forwards;
+    }
+
+    /* Text */
+    .habit-body { flex: 1; min-width: 0; }
+    .habit-name {
+      font-size: 16px;
+      font-weight: 500;
+      transition: color 0.2s, opacity 0.2s;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .habit-item.done .habit-name {
+      text-decoration: line-through;
+      text-decoration-color: var(--text2);
+      color: var(--text2);
+    }
+    .habit-chips {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 4px;
+      flex-wrap: wrap;
+    }
+    .chip {
+      font-size: 11px;
+      font-weight: 500;
+      padding: 2px 8px;
+      border-radius: 100px;
+    }
+    .chip-dur {
+      background: var(--surface2);
+      color: var(--text2);
+    }
+    .chip-streak {
+      background: rgba(74,222,128,0.12);
+      color: var(--accent);
+    }
+    .chip-streak.hot {
+      background: rgba(251,146,60,0.12);
+      color: #fb923c;
+    }
+
+    /* Empty state */
+    .empty-state {
+      padding: 64px 32px;
+      text-align: center;
+      color: var(--text2);
+      font-size: 15px;
+      line-height: 1.7;
+    }
+    .empty-icon { font-size: 36px; margin-bottom: 12px; }
+
+    /* ── Section header ─────────────────────────────────── */
+    .section-header {
+      padding: calc(var(--st) + 22px) 22px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .section-title {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+
+    /* ── Manage list ────────────────────────────────────── */
+    .manage-list {
+      padding: 0 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .manage-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+    }
+    .manage-item-body { flex: 1; min-width: 0; }
+    .manage-name {
+      font-size: 15px;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .manage-sub {
+      font-size: 12px;
+      color: var(--text2);
+      margin-top: 2px;
+    }
+    .manage-actions { display: flex; gap: 6px; }
+    .icon-btn {
+      width: 36px; height: 36px;
+      border-radius: 10px;
+      border: none;
+      background: var(--surface2);
+      color: var(--text2);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s, transform 0.1s;
+    }
+    .icon-btn:active { transform: scale(0.92); }
+    .icon-btn.edit:active, .icon-btn.edit:focus { background: rgba(74,222,128,0.12); color: var(--accent); }
+    .icon-btn.del { background: rgba(248,113,113,0.08); color: var(--danger); }
+
+    /* ── History ────────────────────────────────────────── */
+    .history-controls {
+      padding: 0 22px 4px;
+      display: flex;
+      gap: 6px;
+    }
+    .range-pill {
+      padding: 6px 14px;
+      border-radius: 100px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text2);
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+    }
+    .range-pill.active {
+      background: var(--accent-bg);
+      border-color: var(--accent-ring);
+      color: var(--accent);
+    }
+
+    .history-block {
+      padding: 16px 22px;
+      border-bottom: 1px solid var(--border);
+    }
+    .history-block:last-child { border-bottom: none; }
+    .history-top {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .history-habit-name {
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .history-streak-label {
+      font-size: 12px;
+      color: var(--text2);
+    }
+    .history-streak-label.hot { color: #fb923c; }
+
+    .dot-row {
+      display: flex;
+      gap: 3px;
+    }
+    .dot-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      flex: 1;
+      min-width: 0;
+    }
+    .dot {
+      width: 100%;
+      aspect-ratio: 1;
+      border-radius: 4px;
+      background: var(--surface2);
+      transition: background 0.2s;
+      min-width: 8px;
+      max-width: 28px;
+    }
+    .dot.done { background: var(--accent); }
+    .dot.today {
+      box-shadow: 0 0 0 2px var(--bg), 0 0 0 3.5px var(--accent);
+    }
+    .dot.future { opacity: 0.2; }
+    .dot-label {
+      font-size: 9px;
+      color: var(--text3);
+      font-weight: 500;
+    }
+
+    /* ── Bottom nav ─────────────────────────────────────── */
+    .bottom-nav {
+      display: flex;
+      padding: 2px 6px;
+      padding-bottom: max(var(--sb), 8px);
+      background: var(--bg);
+      border-top: 1px solid var(--border);
+    }
+    .nav-btn {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 8px 0 4px;
+      gap: 3px;
+      background: none;
+      border: none;
+      color: var(--text3);
+      font-size: 10px;
+      font-family: inherit;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      transition: color 0.15s;
+    }
+    .nav-btn.active { color: var(--accent); }
+    .nav-btn svg { width: 22px; height: 22px; }
+
+    /* ── Modal (sheet) ──────────────────────────────────── */
+    .overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.55);
+      z-index: 100;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s;
+      display: flex;
+      align-items: flex-end;
+    }
+    .overlay.open { opacity: 1; pointer-events: all; }
+
+    .sheet {
+      width: 100%;
+      max-width: 480px;
+      margin: 0 auto;
+      background: var(--surface);
+      border-radius: 22px 22px 0 0;
+      padding: 0 22px calc(max(var(--sb), 20px) + 4px);
+      transform: translateY(102%);
+      transition: transform 0.38s cubic-bezier(0.34, 1.15, 0.64, 1);
+    }
+    .overlay.open .sheet { transform: translateY(0); }
+
+    .sheet-handle {
+      width: 36px; height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      margin: 14px auto 20px;
+    }
+    .sheet-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 22px;
+    }
+
+    /* ── Form ───────────────────────────────────────────── */
+    .field { margin-bottom: 16px; }
+    .field-label {
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      color: var(--text2);
+      margin-bottom: 8px;
+    }
+    .field-input {
+      width: 100%;
+      padding: 14px 16px;
+      background: var(--bg);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 16px;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      appearance: none;
+      -webkit-appearance: none;
+    }
+    .field-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-ring);
+    }
+    .field-input::placeholder { color: var(--text3); }
+
+    .btn-row { display: flex; gap: 10px; margin-top: 6px; }
+    .btn {
+      flex: 1;
+      padding: 14px 18px;
+      border-radius: 12px;
+      border: none;
+      font-family: inherit;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn-ghost {
+      background: var(--surface2);
+      color: var(--text2);
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: #0c1a0e;
+      flex: 2;
+    }
+
+    /* Add btn in header */
+    .add-btn {
+      padding: 8px 16px;
+      border-radius: 10px;
+      border: none;
+      background: var(--accent);
+      color: #0c1a0e;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+    .add-btn:active { transform: scale(0.96); }
+
+    /* ── Toast ──────────────────────────────────────────── */
+    .toast {
+      position: fixed;
+      bottom: calc(max(var(--sb), 8px) + 68px);
+      left: 50%;
+      transform: translateX(-50%) translateY(12px);
+      background: var(--surface);
+      color: var(--text);
+      padding: 10px 20px;
+      border-radius: 100px;
+      font-size: 14px;
+      font-weight: 500;
+      border: 1px solid var(--border);
+      box-shadow: 0 4px 24px rgba(0,0,0,0.5);
+      opacity: 0;
+      transition: opacity 0.22s, transform 0.22s;
+      pointer-events: none;
+      z-index: 200;
+      white-space: nowrap;
+      max-width: calc(100vw - 40px);
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ═══ TODAY VIEW ════════════════════════════════════ -->
+  <div class="view active" id="view-today">
+    <div class="today-header">
+      <div class="today-date-label" id="today-date"></div>
+      <div class="today-greeting" id="today-greeting"></div>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-meta">
+        <div class="progress-count" id="progress-count"></div>
+        <div class="progress-pct" id="progress-pct"></div>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+    </div>
+    <div class="all-done-banner" id="all-done-banner">
+      <span>🎉</span><span>All habits complete — great work today!</span>
+    </div>
+    <div class="scroll">
+      <div class="habit-list" id="habit-list"></div>
+      <div class="empty-state" id="empty-today" style="display:none">
+        <div class="empty-icon">✅</div>
+        No habits yet.<br>Head to <strong>Manage</strong> to add some.
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ HISTORY VIEW ══════════════════════════════════ -->
+  <div class="view" id="view-history">
+    <div class="section-header">
+      <div class="section-title">History</div>
+    </div>
+    <div class="history-controls">
+      <button class="range-pill active" data-days="7">7 days</button>
+      <button class="range-pill" data-days="14">14 days</button>
+      <button class="range-pill" data-days="30">30 days</button>
+    </div>
+    <div class="scroll" style="padding-top:12px;">
+      <div id="history-content"></div>
+      <div class="empty-state" id="empty-history" style="display:none">
+        <div class="empty-icon">📅</div>
+        No habits to show yet.
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ MANAGE VIEW ═══════════════════════════════════ -->
+  <div class="view" id="view-manage">
+    <div class="section-header">
+      <div class="section-title">Manage</div>
+      <button class="add-btn" id="open-add-btn">+ Add Habit</button>
+    </div>
+    <div class="scroll">
+      <div class="manage-list" id="manage-list"></div>
+      <div class="empty-state" id="empty-manage" style="display:none">
+        <div class="empty-icon">🌱</div>
+        No habits yet.<br>Tap <strong>+ Add Habit</strong> to get started.
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ BOTTOM NAV ════════════════════════════════════ -->
+  <nav class="bottom-nav">
+    <button class="nav-btn active" data-view="today">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+        <polyline points="9 22 9 12 15 12 15 22"/>
+      </svg>
+      Today
+    </button>
+    <button class="nav-btn" data-view="history">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/>
+        <line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+      </svg>
+      History
+    </button>
+    <button class="nav-btn" data-view="manage">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/>
+        <line x1="8" y1="18" x2="21" y2="18"/>
+        <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/>
+        <line x1="3" y1="18" x2="3.01" y2="18"/>
+      </svg>
+      Manage
+    </button>
+  </nav>
+</div>
+
+<!-- ═══ ADD / EDIT SHEET ══════════════════════════════════ -->
+<div class="overlay" id="sheet-overlay">
+  <div class="sheet" id="habit-sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" id="sheet-title">Add Habit</div>
+    <form id="habit-form" autocomplete="off">
+      <div class="field">
+        <label class="field-label" for="inp-name">Habit Name</label>
+        <input class="field-input" id="inp-name" type="text" placeholder="e.g. Read for 20 minutes" maxlength="80" required>
+      </div>
+      <div class="field">
+        <label class="field-label" for="inp-dur">Duration in Minutes <span style="font-weight:400;text-transform:none;letter-spacing:0">(optional)</span></label>
+        <input class="field-input" id="inp-dur" type="number" inputmode="numeric" placeholder="e.g. 15" min="1" max="999">
+      </div>
+      <div class="btn-row">
+        <button type="button" class="btn btn-ghost" id="sheet-cancel">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="sheet-save">Add Habit</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ═══ TOAST ══════════════════════════════════════════════ -->
+<div class="toast" id="toast"></div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   DATA MODEL
+   state.habits     = [{ id, name, duration, createdAt }]
+   state.completions = { "YYYY-MM-DD": [id, id, ...] }
+═══════════════════════════════════════════════════════════ */
+const STORAGE_KEY = 'habitTracker_v1';
+let state = { habits: [], completions: {} };
+let editingId = null;
+let historyDays = 7;
+let toastTimer = null;
+let midnightTimer = null;
+
+/* ── Persistence ──────────────────────────────────────── */
+function load() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) state = { ...state, ...JSON.parse(raw) };
+  } catch (_) {}
+}
+function save() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+/* ── Date helpers ─────────────────────────────────────── */
+function ds(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+function today() { return ds(new Date()); }
+function displayDate(date) {
+  return date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+}
+function greeting() {
+  const h = new Date().getHours();
+  if (h < 12) return 'Good morning';
+  if (h < 18) return 'Good afternoon';
+  return 'Good evening';
+}
+const DAY_INIT = ['S','M','T','W','T','F','S'];
+
+/* ── Streaks ──────────────────────────────────────────── */
+function streak(habitId) {
+  const t = today();
+  const todayDone = (state.completions[t] || []).includes(habitId);
+  let count = 0;
+  const d = new Date();
+  if (todayDone) {
+    count = 1;
+    d.setDate(d.getDate() - 1);
+  } else {
+    d.setDate(d.getDate() - 1);
+  }
+  while ((state.completions[ds(d)] || []).includes(habitId)) {
+    count++;
+    d.setDate(d.getDate() - 1);
+  }
+  return count;
+}
+
+/* ── Completions ──────────────────────────────────────── */
+function toggle(habitId) {
+  const t = today();
+  if (!state.completions[t]) state.completions[t] = [];
+  const idx = state.completions[t].indexOf(habitId);
+  if (idx >= 0) state.completions[t].splice(idx, 1);
+  else state.completions[t].push(habitId);
+  save();
+}
+function doneToday() { return state.completions[today()] || []; }
+
+/* ── Utils ────────────────────────────────────────────── */
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+function esc(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+/* ── Toast ────────────────────────────────────────────── */
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2600);
+}
+
+/* ═══ RENDER: TODAY ═══════════════════════════════════════ */
+function renderToday() {
+  const t = today();
+  const done = doneToday();
+  const habits = state.habits;
+  const n = habits.length;
+  const c = done.length;
+
+  document.getElementById('today-date').textContent = displayDate(new Date());
+  document.getElementById('today-greeting').textContent = greeting();
+
+  const pct = n ? Math.round(c / n * 100) : 0;
+  document.getElementById('progress-count').innerHTML =
+    `<b>${c}</b> of <b>${n}</b> done today`;
+  const pctEl = document.getElementById('progress-pct');
+  pctEl.textContent = pct + '%';
+  pctEl.classList.toggle('show', c > 0 && n > 0);
+  document.getElementById('progress-fill').style.width = pct + '%';
+
+  const banner = document.getElementById('all-done-banner');
+  banner.classList.toggle('show', n > 0 && c === n);
+
+  const list = document.getElementById('habit-list');
+  const empty = document.getElementById('empty-today');
+
+  if (!n) {
+    list.innerHTML = '';
+    empty.style.display = '';
+    return;
+  }
+  empty.style.display = 'none';
+  list.innerHTML = '';
+
+  habits.forEach(habit => {
+    const isDone = done.includes(habit.id);
+    const s = streak(habit.id);
+    const isHot = s >= 7;
+
+    const item = document.createElement('div');
+    item.className = 'habit-item' + (isDone ? ' done' : '');
+    item.dataset.id = habit.id;
+    item.setAttribute('role', 'checkbox');
+    item.setAttribute('aria-checked', isDone ? 'true' : 'false');
+    item.setAttribute('tabindex', '0');
+
+    let chips = '';
+    if (habit.duration) chips += `<span class="chip chip-dur">${habit.duration} min</span>`;
+    if (s > 0) chips += `<span class="chip chip-streak${isHot ? ' hot' : ''}">
+      ${isHot ? '🔥' : '⚡'} ${s} day${s !== 1 ? 's' : ''}</span>`;
+
+    item.innerHTML = `
+      <div class="check-ring">
+        <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+          <polyline points="2,6.5 5,9.5 11,3" stroke="#0c1a0e" stroke-width="2.2"
+            stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="habit-body">
+        <div class="habit-name">${esc(habit.name)}</div>
+        ${chips ? `<div class="habit-chips">${chips}</div>` : ''}
+      </div>`;
+
+    item.addEventListener('click', () => handleCheck(habit.id, item));
+    item.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleCheck(habit.id, item); }
+    });
+
+    list.appendChild(item);
+  });
+}
+
+function handleCheck(habitId, item) {
+  toggle(habitId);
+  item.classList.add('just-checked');
+  setTimeout(() => item.classList.remove('just-checked'), 500);
+  renderToday();
+  const done = doneToday();
+  if (done.length === state.habits.length && state.habits.length > 0) {
+    toast('All habits complete — great work! 🎉');
+  }
+}
+
+/* ═══ RENDER: MANAGE ══════════════════════════════════════ */
+function renderManage() {
+  const list = document.getElementById('manage-list');
+  const empty = document.getElementById('empty-manage');
+  list.innerHTML = '';
+
+  if (!state.habits.length) {
+    empty.style.display = '';
+    return;
+  }
+  empty.style.display = 'none';
+
+  state.habits.forEach(habit => {
+    const item = document.createElement('div');
+    item.className = 'manage-item';
+    const sub = habit.duration ? `${habit.duration} min per day` : 'No duration set';
+    item.innerHTML = `
+      <div class="manage-item-body">
+        <div class="manage-name">${esc(habit.name)}</div>
+        <div class="manage-sub">${sub}</div>
+      </div>
+      <div class="manage-actions">
+        <button class="icon-btn edit" data-action="edit" data-id="${habit.id}" aria-label="Edit">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4z"/>
+          </svg>
+        </button>
+        <button class="icon-btn del" data-action="delete" data-id="${habit.id}" aria-label="Delete">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="3 6 5 6 21 6"/>
+            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+            <path d="M10 11v6"/><path d="M14 11v6"/>
+            <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+          </svg>
+        </button>
+      </div>`;
+    list.appendChild(item);
+  });
+}
+
+/* ═══ RENDER: HISTORY ═════════════════════════════════════ */
+function renderHistory() {
+  const content = document.getElementById('history-content');
+  const empty = document.getElementById('empty-history');
+
+  if (!state.habits.length) {
+    content.innerHTML = '';
+    empty.style.display = '';
+    return;
+  }
+  empty.style.display = 'none';
+  content.innerHTML = '';
+
+  const todayDate = new Date();
+  const todayS = today();
+  const days = [];
+  for (let i = historyDays - 1; i >= 0; i--) {
+    const d = new Date(todayDate);
+    d.setDate(d.getDate() - i);
+    days.push(d);
+  }
+
+  state.habits.forEach(habit => {
+    const s = streak(habit.id);
+    const isHot = s >= 7;
+
+    const block = document.createElement('div');
+    block.className = 'history-block';
+
+    const streakHtml = s > 0
+      ? `<span class="history-streak-label${isHot ? ' hot' : ''}">${isHot ? '🔥' : '⚡'} ${s} day streak</span>`
+      : '';
+
+    block.innerHTML = `
+      <div class="history-top">
+        <div class="history-habit-name">${esc(habit.name)}</div>
+        ${streakHtml}
+      </div>
+      <div class="dot-row" id="dots-${habit.id}"></div>`;
+
+    content.appendChild(block);
+
+    const row = block.querySelector(`#dots-${habit.id}`);
+    days.forEach(d => {
+      const s2 = ds(d);
+      const isDone = (state.completions[s2] || []).includes(habit.id);
+      const isToday = s2 === todayS;
+
+      const col = document.createElement('div');
+      col.className = 'dot-col';
+      col.innerHTML = `
+        <div class="dot${isDone ? ' done' : ''}${isToday ? ' today' : ''}"></div>
+        <div class="dot-label">${DAY_INIT[d.getDay()]}</div>`;
+      row.appendChild(col);
+    });
+  });
+}
+
+/* ═══ SHEET (modal) ═══════════════════════════════════════ */
+function openSheet(id = null) {
+  editingId = id;
+  const habit = id ? state.habits.find(h => h.id === id) : null;
+  document.getElementById('sheet-title').textContent = id ? 'Edit Habit' : 'Add Habit';
+  document.getElementById('sheet-save').textContent = id ? 'Save Changes' : 'Add Habit';
+  document.getElementById('inp-name').value = habit ? habit.name : '';
+  document.getElementById('inp-dur').value = habit?.duration || '';
+  document.getElementById('sheet-overlay').classList.add('open');
+  setTimeout(() => document.getElementById('inp-name').focus(), 380);
+}
+function closeSheet() {
+  document.getElementById('sheet-overlay').classList.remove('open');
+  editingId = null;
+}
+
+/* ═══ CRUD ════════════════════════════════════════════════ */
+function saveHabit(name, duration) {
+  if (editingId) {
+    const h = state.habits.find(h => h.id === editingId);
+    if (h) { h.name = name; h.duration = duration; }
+    toast('Habit updated');
+  } else {
+    state.habits.push({ id: uid(), name, duration, createdAt: today() });
+    toast('Habit added');
+  }
+  save();
+  renderAll();
+  closeSheet();
+}
+
+function deleteHabit(id) {
+  const habit = state.habits.find(h => h.id === id);
+  if (!habit) return;
+  if (!confirm(`Delete "${habit.name}"?\n\nYour history will be kept.`)) return;
+  state.habits = state.habits.filter(h => h.id !== id);
+  save();
+  renderAll();
+  toast('Habit deleted');
+}
+
+/* ═══ NAVIGATION ══════════════════════════════════════════ */
+function switchView(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('view-' + name).classList.add('active');
+  document.querySelector(`.nav-btn[data-view="${name}"]`).classList.add('active');
+  if (name === 'history') renderHistory();
+  if (name === 'manage') renderManage();
+}
+
+function renderAll() {
+  renderToday();
+  if (document.getElementById('view-manage').classList.contains('active')) renderManage();
+  if (document.getElementById('view-history').classList.contains('active')) renderHistory();
+}
+
+/* ═══ MIDNIGHT RESET ══════════════════════════════════════ */
+function scheduleMidnight() {
+  clearTimeout(midnightTimer);
+  const now = new Date();
+  const next = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 2);
+  midnightTimer = setTimeout(() => { renderAll(); scheduleMidnight(); }, next - now);
+}
+
+/* ═══ INIT ════════════════════════════════════════════════ */
+function init() {
+  load();
+
+  /* Seed default habits on first launch */
+  if (!state.habits.length && !localStorage.getItem('habitTracker_seeded')) {
+    state.habits = [
+      { id: uid(), name: 'Duolingo Spanish', duration: 15, createdAt: today() },
+      { id: uid(), name: 'Learn stock options', duration: 10, createdAt: today() },
+    ];
+    localStorage.setItem('habitTracker_seeded', '1');
+    save();
+  }
+
+  renderToday();
+
+  /* Nav */
+  document.querySelectorAll('.nav-btn').forEach(btn => {
+    btn.addEventListener('click', () => switchView(btn.dataset.view));
+  });
+
+  /* Today: list delegation (for keyboard nav) is set per-item in renderToday */
+
+  /* Manage: event delegation */
+  document.getElementById('manage-list').addEventListener('click', e => {
+    const btn = e.target.closest('[data-action]');
+    if (!btn) return;
+    if (btn.dataset.action === 'edit')   openSheet(btn.dataset.id);
+    if (btn.dataset.action === 'delete') deleteHabit(btn.dataset.id);
+  });
+
+  /* Add habit */
+  document.getElementById('open-add-btn').addEventListener('click', () => openSheet());
+
+  /* Sheet */
+  document.getElementById('sheet-cancel').addEventListener('click', closeSheet);
+  document.getElementById('sheet-overlay').addEventListener('click', e => {
+    if (e.target === document.getElementById('sheet-overlay')) closeSheet();
+  });
+
+  /* Form */
+  document.getElementById('habit-form').addEventListener('submit', e => {
+    e.preventDefault();
+    const name = document.getElementById('inp-name').value.trim();
+    if (!name) return;
+    const dur = parseInt(document.getElementById('inp-dur').value) || null;
+    saveHabit(name, dur);
+  });
+
+  /* History range pills */
+  document.querySelectorAll('.range-pill').forEach(pill => {
+    pill.addEventListener('click', () => {
+      document.querySelectorAll('.range-pill').forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      historyDays = parseInt(pill.dataset.days);
+      renderHistory();
+    });
+  });
+
+  /* Midnight reset */
+  scheduleMidnight();
+
+  /* Visibility change: re-render if day changed while app was backgrounded */
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') renderAll();
+  });
+}
+
+/* ═══ SERVICE WORKER ══════════════════════════════════════ */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  });
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
