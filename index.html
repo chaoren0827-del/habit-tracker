@@ -4,9 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Habits">
-  <meta name="theme-color" content="#0f0f0f">
+  <meta name="theme-color" content="#FAF8F3">
   <title>Daily Habits</title>
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="icon.svg">
@@ -21,22 +21,24 @@
       *, *::before, *::after { animation: none !important; transition: none !important; }
     }
 
-    /* ── Design tokens ──────────────────────────────────── */
+    /* ── Design tokens ──────────────────────────────────────── */
     :root {
-      --bg:          #0f0f0f;
-      --surface:     #1a1a1a;
-      --surface2:    #242424;
-      --border:      #2e2e2e;
-      --text:        #f0f0f0;
-      --text2:       #888;
-      --text3:       #4a4a4a;
-      --accent:      #4ade80;
-      --accent-bg:   rgba(74,222,128,0.08);
-      --accent-ring: rgba(74,222,128,0.35);
-      --danger:      #f87171;
-      --r:           16px;
-      --st:          env(safe-area-inset-top, 0px);
-      --sb:          env(safe-area-inset-bottom, 0px);
+      --bg:           #FAF8F3;
+      --surface:      #FFFFFF;
+      --surface-done: #F0EDE4;
+      --surface2:     #F5F2EB;
+      --border:       #EDE9DE;
+      --border-empty: #D4CFBF;
+      --text:         #3A3833;
+      --text2:        #8A8676;
+      --text3:        #B8B5A8;
+      --accent:       #74B562;
+      --accent-ring:  rgba(116,181,98,0.2);
+      --hot:          #C4784E;
+      --danger:       #C17B6A;
+      --r:            14px;
+      --st:           env(safe-area-inset-top, 0px);
+      --sb:           env(safe-area-inset-bottom, 0px);
     }
 
     /* ── Base ───────────────────────────────────────────── */
@@ -50,7 +52,7 @@
       -webkit-font-smoothing: antialiased;
     }
 
-    /* ── App shell ──────────────────────────────────────── */
+    /* ── App shell ──────────────────────────────────────────── */
     #app {
       display: flex;
       flex-direction: column;
@@ -72,76 +74,46 @@
       flex: 1;
       overflow-y: auto;
       -webkit-overflow-scrolling: touch;
-      padding-bottom: 12px;
+      padding-bottom: 16px;
     }
 
     /* ── Today header ───────────────────────────────────── */
     .today-header {
-      padding: calc(var(--st) + 22px) 22px 0;
+      padding: calc(var(--st) + 28px) 22px 16px;
     }
     .today-date-label {
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 600;
-      letter-spacing: 0.1em;
+      letter-spacing: 0.12em;
       text-transform: uppercase;
       color: var(--accent);
       margin-bottom: 4px;
     }
     .today-greeting {
-      font-size: 26px;
-      font-weight: 700;
-      letter-spacing: -0.4px;
+      font-size: 28px;
+      font-weight: 600;
+      letter-spacing: -0.5px;
+      color: var(--text);
+      line-height: 1.2;
     }
-
-    /* ── Progress ───────────────────────────────────────── */
-    .progress-wrap {
-      padding: 18px 22px 20px;
-    }
-    .progress-meta {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 10px;
-    }
-    .progress-count {
+    .today-sub {
       font-size: 14px;
       color: var(--text2);
+      margin-top: 5px;
     }
-    .progress-count b { color: var(--text); font-weight: 600; }
-    .progress-pct {
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--accent);
-      opacity: 0;
-      transition: opacity 0.3s;
-    }
-    .progress-pct.show { opacity: 1; }
-    .progress-bar {
-      height: 5px;
-      background: var(--surface2);
-      border-radius: 3px;
-      overflow: hidden;
-    }
-    .progress-fill {
-      height: 100%;
-      background: var(--accent);
-      border-radius: 3px;
-      transition: width 0.45s cubic-bezier(0.34, 1.4, 0.64, 1);
-    }
+    .today-sub b { font-weight: 400; }
+
+    /* ── Progress (hidden, preserved for JS) ──────────── */
+    .progress-wrap { display: none; }
 
     /* ── All-done banner ────────────────────────────────── */
     .all-done-banner {
-      margin: 0 22px 16px;
-      padding: 14px 18px;
-      background: var(--accent-bg);
-      border: 1px solid var(--accent-ring);
+      margin: 0 16px 12px;
+      padding: 12px 16px;
+      background: var(--surface-done);
       border-radius: var(--r);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--accent);
+      font-size: 13px;
+      color: var(--text2);
       opacity: 0;
       max-height: 0;
       overflow: hidden;
@@ -149,12 +121,12 @@
     }
     .all-done-banner.show {
       opacity: 1;
-      max-height: 80px;
+      max-height: 60px;
     }
 
     /* ── Habit list ─────────────────────────────────────── */
     .habit-list {
-      padding: 0 22px;
+      padding: 0 16px;
       display: flex;
       flex-direction: column;
       gap: 10px;
@@ -164,77 +136,52 @@
       display: flex;
       align-items: center;
       gap: 14px;
-      padding: 16px 16px;
+      padding: 16px;
       background: var(--surface);
       border-radius: var(--r);
       border: 1px solid var(--border);
       cursor: pointer;
-      transition: background 0.2s, border-color 0.2s, transform 0.12s;
+      transition: opacity 0.2s ease, box-shadow 0.2s ease;
       user-select: none;
       -webkit-user-select: none;
+      min-height: 44px;
       position: relative;
-      overflow: hidden;
+      box-shadow: 0 1px 4px rgba(58,56,51,0.07);
     }
-    .habit-item::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: var(--accent);
-      opacity: 0;
-      transition: opacity 0.15s;
-      pointer-events: none;
-    }
-    .habit-item:active::after { opacity: 0.06; }
-    .habit-item:active { transform: scale(0.985); }
+    .habit-item:active { opacity: 0.65; }
 
     .habit-item.done {
-      border-color: var(--accent-ring);
-      background: var(--accent-bg);
+      background: var(--surface-done);
+      border-color: transparent;
+      box-shadow: none;
     }
 
     /* Checkbox circle */
     .check-ring {
-      width: 28px; height: 28px;
-      min-width: 28px;
+      width: 26px; height: 26px;
+      min-width: 26px;
       border-radius: 50%;
-      border: 2px solid var(--border);
+      border: 1.5px solid var(--border-empty);
+      background: transparent;
       display: flex; align-items: center; justify-content: center;
-      transition: background 0.2s cubic-bezier(0.34,1.56,0.64,1),
-                  border-color 0.2s,
-                  transform 0.2s cubic-bezier(0.34,1.56,0.64,1);
-      position: relative;
+      transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
     }
     .habit-item.done .check-ring {
       background: var(--accent);
       border-color: var(--accent);
       transform: scale(1.08);
     }
+    .check-ring svg polyline {
+      stroke: var(--bg);
+    }
     .check-ring svg {
       opacity: 0;
-      transform: scale(0.4) rotate(-15deg);
-      transition: opacity 0.18s, transform 0.2s cubic-bezier(0.34,1.56,0.64,1);
+      transform: scale(0.5);
+      transition: opacity 0.2s ease, transform 0.2s ease;
     }
     .habit-item.done .check-ring svg {
       opacity: 1;
-      transform: scale(1) rotate(0deg);
-    }
-
-    /* Ripple on check */
-    @keyframes ripple {
-      0%   { transform: scale(0); opacity: 0.4; }
-      100% { transform: scale(2.8); opacity: 0; }
-    }
-    .check-ring::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      border-radius: 50%;
-      background: var(--accent);
-      transform: scale(0);
-      opacity: 0;
-    }
-    .habit-item.just-checked .check-ring::before {
-      animation: ripple 0.45s ease-out forwards;
+      transform: scale(1);
     }
 
     /* Text */
@@ -242,40 +189,21 @@
     .habit-name {
       font-size: 16px;
       font-weight: 500;
-      transition: color 0.2s, opacity 0.2s;
+      color: var(--text);
+      transition: color 0.2s ease;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
     .habit-item.done .habit-name {
       text-decoration: line-through;
-      text-decoration-color: var(--text2);
+      text-decoration-color: var(--text3);
       color: var(--text2);
     }
-    .habit-chips {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      margin-top: 4px;
-      flex-wrap: wrap;
-    }
-    .chip {
-      font-size: 11px;
-      font-weight: 500;
-      padding: 2px 8px;
-      border-radius: 100px;
-    }
-    .chip-dur {
-      background: var(--surface2);
-      color: var(--text2);
-    }
-    .chip-streak {
-      background: rgba(74,222,128,0.12);
-      color: var(--accent);
-    }
-    .chip-streak.hot {
-      background: rgba(251,146,60,0.12);
-      color: #fb923c;
+    .habit-meta {
+      font-size: 13px;
+      color: var(--text3);
+      margin-top: 3px;
     }
 
     /* Empty state */
@@ -286,24 +214,25 @@
       font-size: 15px;
       line-height: 1.7;
     }
-    .empty-icon { font-size: 36px; margin-bottom: 12px; }
+    .empty-icon { font-size: 32px; margin-bottom: 12px; }
 
     /* ── Section header ─────────────────────────────────── */
     .section-header {
-      padding: calc(var(--st) + 22px) 22px 18px;
+      padding: calc(var(--st) + 28px) 22px 18px;
       display: flex;
       align-items: center;
       justify-content: space-between;
     }
     .section-title {
       font-size: 22px;
-      font-weight: 700;
+      font-weight: 600;
       letter-spacing: -0.3px;
+      color: var(--text);
     }
 
     /* ── Manage list ────────────────────────────────────── */
     .manage-list {
-      padding: 0 22px;
+      padding: 0 16px;
       display: flex;
       flex-direction: column;
       gap: 8px;
@@ -316,38 +245,60 @@
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--r);
+      min-height: 44px;
     }
     .manage-item-body { flex: 1; min-width: 0; }
     .manage-name {
       font-size: 15px;
       font-weight: 500;
+      color: var(--text);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
     .manage-sub {
       font-size: 12px;
-      color: var(--text2);
+      color: var(--text3);
       margin-top: 2px;
     }
+    .manage-sub:empty { display: none; }
     .manage-actions { display: flex; gap: 6px; }
     .icon-btn {
       width: 36px; height: 36px;
+      min-width: 36px;
       border-radius: 10px;
       border: none;
       background: var(--surface2);
       color: var(--text2);
       display: flex; align-items: center; justify-content: center;
       cursor: pointer;
-      transition: background 0.15s, color 0.15s, transform 0.1s;
+      transition: background 0.15s, color 0.15s;
     }
-    .icon-btn:active { transform: scale(0.92); }
-    .icon-btn.edit:active, .icon-btn.edit:focus { background: rgba(74,222,128,0.12); color: var(--accent); }
-    .icon-btn.del { background: rgba(248,113,113,0.08); color: var(--danger); }
+    .icon-btn.edit:active { background: rgba(116,181,98,0.15); color: var(--accent); }
+    .icon-btn.del { background: rgba(193,123,106,0.07); color: var(--danger); }
+
+    /* Add link */
+    .add-link-wrap {
+      padding: 20px 16px 8px;
+      text-align: center;
+    }
+    .add-link {
+      background: none;
+      border: none;
+      font-family: inherit;
+      font-size: 15px;
+      color: var(--text3);
+      cursor: pointer;
+      padding: 8px 20px;
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+    }
+    .add-link:active { opacity: 0.55; }
 
     /* ── History ────────────────────────────────────────── */
     .history-controls {
-      padding: 0 22px 4px;
+      padding: 0 16px 4px;
       display: flex;
       gap: 6px;
     }
@@ -362,10 +313,11 @@
       font-weight: 500;
       cursor: pointer;
       transition: background 0.15s, color 0.15s, border-color 0.15s;
+      min-height: 36px;
     }
     .range-pill.active {
-      background: var(--accent-bg);
-      border-color: var(--accent-ring);
+      background: rgba(116,181,98,0.1);
+      border-color: var(--accent);
       color: var(--accent);
     }
 
@@ -382,13 +334,14 @@
     }
     .history-habit-name {
       font-size: 14px;
-      font-weight: 600;
+      font-weight: 500;
+      color: var(--text);
     }
     .history-streak-label {
       font-size: 12px;
-      color: var(--text2);
+      color: var(--accent);
     }
-    .history-streak-label.hot { color: #fb923c; }
+    .history-streak-label.hot { color: var(--hot); }
 
     .dot-row {
       display: flex;
@@ -406,7 +359,7 @@
       width: 100%;
       aspect-ratio: 1;
       border-radius: 4px;
-      background: var(--surface2);
+      background: var(--border);
       transition: background 0.2s;
       min-width: 8px;
       max-width: 28px;
@@ -415,7 +368,7 @@
     .dot.today {
       box-shadow: 0 0 0 2px var(--bg), 0 0 0 3.5px var(--accent);
     }
-    .dot.future { opacity: 0.2; }
+    .dot.future { opacity: 0.3; }
     .dot-label {
       font-size: 9px;
       color: var(--text3);
@@ -442,10 +395,11 @@
       color: var(--text3);
       font-size: 10px;
       font-family: inherit;
-      font-weight: 600;
+      font-weight: 500;
       letter-spacing: 0.04em;
       cursor: pointer;
       transition: color 0.15s;
+      min-height: 44px;
     }
     .nav-btn.active { color: var(--accent); }
     .nav-btn svg { width: 22px; height: 22px; }
@@ -453,7 +407,7 @@
     /* ── Modal (sheet) ──────────────────────────────────── */
     .overlay {
       position: fixed; inset: 0;
-      background: rgba(0,0,0,0.55);
+      background: rgba(58,56,51,0.28);
       z-index: 100;
       opacity: 0;
       pointer-events: none;
@@ -467,23 +421,26 @@
       width: 100%;
       max-width: 480px;
       margin: 0 auto;
-      background: var(--surface);
+      background: var(--bg);
       border-radius: 22px 22px 0 0;
+      border: 1px solid var(--border);
+      border-bottom: none;
       padding: 0 22px calc(max(var(--sb), 20px) + 4px);
       transform: translateY(102%);
-      transition: transform 0.38s cubic-bezier(0.34, 1.15, 0.64, 1);
+      transition: transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     }
     .overlay.open .sheet { transform: translateY(0); }
 
     .sheet-handle {
       width: 36px; height: 4px;
-      background: var(--border);
+      background: var(--border-empty);
       border-radius: 2px;
       margin: 14px auto 20px;
     }
     .sheet-title {
       font-size: 18px;
-      font-weight: 700;
+      font-weight: 600;
+      color: var(--text);
       margin-bottom: 22px;
     }
 
@@ -492,16 +449,16 @@
     .field-label {
       display: block;
       font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 0.09em;
+      font-weight: 600;
+      letter-spacing: 0.08em;
       text-transform: uppercase;
-      color: var(--text2);
+      color: var(--text3);
       margin-bottom: 8px;
     }
     .field-input {
       width: 100%;
       padding: 14px 16px;
-      background: var(--bg);
+      background: var(--surface);
       border: 1.5px solid var(--border);
       border-radius: 12px;
       color: var(--text);
@@ -526,35 +483,21 @@
       border: none;
       font-family: inherit;
       font-size: 15px;
-      font-weight: 700;
+      font-weight: 600;
       cursor: pointer;
-      transition: opacity 0.15s, transform 0.1s;
+      transition: opacity 0.15s;
+      min-height: 44px;
     }
-    .btn:active { transform: scale(0.97); }
+    .btn:active { opacity: 0.65; }
     .btn-ghost {
       background: var(--surface2);
       color: var(--text2);
     }
     .btn-primary {
       background: var(--accent);
-      color: #0c1a0e;
+      color: var(--bg);
       flex: 2;
     }
-
-    /* Add btn in header */
-    .add-btn {
-      padding: 8px 16px;
-      border-radius: 10px;
-      border: none;
-      background: var(--accent);
-      color: #0c1a0e;
-      font-family: inherit;
-      font-size: 14px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: opacity 0.15s, transform 0.1s;
-    }
-    .add-btn:active { transform: scale(0.96); }
 
     /* ── Toast ──────────────────────────────────────────── */
     .toast {
@@ -562,14 +505,13 @@
       bottom: calc(max(var(--sb), 8px) + 68px);
       left: 50%;
       transform: translateX(-50%) translateY(12px);
-      background: var(--surface);
-      color: var(--text);
+      background: var(--text);
+      color: var(--bg);
       padding: 10px 20px;
       border-radius: 100px;
       font-size: 14px;
       font-weight: 500;
-      border: 1px solid var(--border);
-      box-shadow: 0 4px 24px rgba(0,0,0,0.5);
+      box-shadow: 0 4px 20px rgba(58,56,51,0.14);
       opacity: 0;
       transition: opacity 0.22s, transform 0.22s;
       pointer-events: none;
@@ -591,17 +533,13 @@
     <div class="today-header">
       <div class="today-date-label" id="today-date"></div>
       <div class="today-greeting" id="today-greeting"></div>
+      <div class="today-sub" id="progress-count"></div>
     </div>
     <div class="progress-wrap">
-      <div class="progress-meta">
-        <div class="progress-count" id="progress-count"></div>
-        <div class="progress-pct" id="progress-pct"></div>
-      </div>
+      <div class="progress-pct" id="progress-pct"></div>
       <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
     </div>
-    <div class="all-done-banner" id="all-done-banner">
-      <span>🎉</span><span>All habits complete — great work today!</span>
-    </div>
+    <div class="all-done-banner" id="all-done-banner">All done for today</div>
     <div class="scroll">
       <div class="habit-list" id="habit-list"></div>
       <div class="empty-state" id="empty-today" style="display:none">
@@ -634,13 +572,15 @@
   <div class="view" id="view-manage">
     <div class="section-header">
       <div class="section-title">Manage</div>
-      <button class="add-btn" id="open-add-btn">+ Add Habit</button>
     </div>
     <div class="scroll">
       <div class="manage-list" id="manage-list"></div>
       <div class="empty-state" id="empty-manage" style="display:none">
         <div class="empty-icon">🌱</div>
-        No habits yet.<br>Tap <strong>+ Add Habit</strong> to get started.
+        No habits yet.<br>Tap <strong>+ add habit</strong> to get started.
+      </div>
+      <div class="add-link-wrap">
+        <button class="add-link" id="open-add-btn">+ add habit</button>
       </div>
     </div>
   </div>
@@ -796,8 +736,11 @@ function renderToday() {
   const n = habits.length;
   const c = done.length;
 
-  document.getElementById('today-date').textContent = displayDate(new Date());
-  document.getElementById('today-greeting').textContent = greeting();
+  const now = new Date();
+  document.getElementById('today-date').textContent =
+    now.toLocaleDateString('en-US', { weekday: 'long' }).toUpperCase();
+  document.getElementById('today-greeting').textContent =
+    now.toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
 
   const pct = n ? Math.round(c / n * 100) : 0;
   document.getElementById('progress-count').innerHTML =
@@ -824,7 +767,6 @@ function renderToday() {
   habits.forEach(habit => {
     const isDone = done.includes(habit.id);
     const s = streak(habit.id);
-    const isHot = s >= 7;
 
     const item = document.createElement('div');
     item.className = 'habit-item' + (isDone ? ' done' : '');
@@ -833,21 +775,23 @@ function renderToday() {
     item.setAttribute('aria-checked', isDone ? 'true' : 'false');
     item.setAttribute('tabindex', '0');
 
-    let chips = '';
-    if (habit.duration) chips += `<span class="chip chip-dur">${habit.duration} min</span>`;
-    if (s > 0) chips += `<span class="chip chip-streak${isHot ? ' hot' : ''}">
-      ${isHot ? '🔥' : '⚡'} ${s} day${s !== 1 ? 's' : ''}</span>`;
+    const metaParts = [];
+    if (habit.duration) metaParts.push(`${habit.duration} min`);
+    if (s > 0) metaParts.push(`${s} day streak`);
+    const metaHtml = metaParts.length
+      ? `<div class="habit-meta">${metaParts.join(' · ')}</div>`
+      : '';
 
     item.innerHTML = `
       <div class="check-ring">
         <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
-          <polyline points="2,6.5 5,9.5 11,3" stroke="#0c1a0e" stroke-width="2.2"
+          <polyline points="2,6.5 5,9.5 11,3" stroke="#FAF8F3" stroke-width="2.2"
             stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </div>
       <div class="habit-body">
         <div class="habit-name">${esc(habit.name)}</div>
-        ${chips ? `<div class="habit-chips">${chips}</div>` : ''}
+        ${metaHtml}
       </div>`;
 
     item.addEventListener('click', () => handleCheck(habit.id, item));
@@ -866,7 +810,7 @@ function handleCheck(habitId, item) {
   renderToday();
   const done = doneToday();
   if (done.length === state.habits.length && state.habits.length > 0) {
-    toast('All habits complete — great work! 🎉');
+    toast('All done for today');
   }
 }
 
@@ -885,7 +829,7 @@ function renderManage() {
   state.habits.forEach(habit => {
     const item = document.createElement('div');
     item.className = 'manage-item';
-    const sub = habit.duration ? `${habit.duration} min per day` : 'No duration set';
+    const sub = habit.duration ? `${habit.duration} min` : '';
     item.innerHTML = `
       <div class="manage-item-body">
         <div class="manage-name">${esc(habit.name)}</div>
@@ -937,13 +881,13 @@ function renderHistory() {
 
   state.habits.forEach(habit => {
     const s = streak(habit.id);
-    const isHot = s >= 7;
 
     const block = document.createElement('div');
     block.className = 'history-block';
 
+    const isHot = s >= 7;
     const streakHtml = s > 0
-      ? `<span class="history-streak-label${isHot ? ' hot' : ''}">${isHot ? '🔥' : '⚡'} ${s} day streak</span>`
+      ? `<span class="history-streak-label${isHot ? ' hot' : ''}">${s} day streak</span>`
       : '';
 
     block.innerHTML = `
@@ -1056,8 +1000,6 @@ function init() {
   document.querySelectorAll('.nav-btn').forEach(btn => {
     btn.addEventListener('click', () => switchView(btn.dataset.view));
   });
-
-  /* Today: list delegation (for keyboard nav) is set per-item in renderToday */
 
   /* Manage: event delegation */
   document.getElementById('manage-list').addEventListener('click', e => {
